@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bigfoot Sighter</title>
+    <!-- Tailwind CSS CDN for basic utilities, though most styling is custom CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for overall page */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Dark, slightly misty forest background for a cute but mysterious vibe */
+            background: linear-gradient(to bottom, rgba(10, 26, 15, 0.9),  rgba(27, 40, 30, 0.8)),
+                        url('forest.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            box-sizing: border-box;
+            color: #e0e7e0;
+            overflow: hidden; /* Hide overflow from character moving off-screen */
+        }
+
+        h3 {
+            color: #d0d7d0;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        p {
+            color: #b0c4b0;
+            font-size: 1rem;
+            max-width: 500px;
+            text-align: center;
+            margin-bottom: 2rem;
+            z-index: 10;
+        }
+
+        .character-container {
+            position: absolute; /* Allows precise positioning and animation */
+            width: 250px; /* Overall width (base for internal elements) */
+            height: 336px; /* Overall height (base for internal elements) */
+            /* Aggressively reduce the base size to make him consistently smaller */
+            transform: scale(0.2); /* Now 20% of original size as a base */
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+            z-index:3;
+            /* Combined animations: random teleportation (with scale) and subtle swaying */
+            animation: randomTeleport 60s  ease-in-out infinite, /* Jumps between positions and scales */
+                       sway 3s ease-in-out infinite alternate; /* Soft sway */
+        }
+
+        /* Keyframes for the character "teleporting" to random locations and scaling */
+        @keyframes randomTeleport {
+            /* These scales are relative to the .character-container's base scale(0.2) */
+            /* So, scale(1) here means 20% of original, scale(0.1) means 2% of original */
+            0% { left: 18%; bottom: -5%; opacity: 1; transform: scale(1); filter: brightness(90%);} /* Position 1: Largest visible size */
+            10% { left: 65%; bottom: 1%; opacity: 0.5; transform: scale(0.7) !important;  filter: brightness(60%);} /* Position 2: Smaller */
+            20% { left: 15%; bottom: -5%; opacity: 1; transform: scale(0.4) !important;  filter: brightness(40%);} /* Position 3: Even smaller */
+            30% { left: 80%; bottom: 10%; opacity: 0.25; transform: scale(1); } /* Position 4: Largest visible size */
+            40% { left: 5%; bottom: 9%; opacity: 1; transform: scale(0.6) !important;  filter: brightness(55%);} /* Position 5: Mid-small */
+            50% { left: 30%; bottom: -6%; opacity: 0.75; transform: scale(0.4) !important;  filter: brightness(30%);} /* Position 3: Even smaller */
+            60% { left: 80%; bottom: 10%; opacity: 1; transform: scale(1); } /* Position 4: Largest visible size */
+            70% { left: 5%; bottom: -9%; opacity: 0.5; transform: scale(0.6) !important;  filter: brightness(70%);} /* Position 5: Mid-small */
+            80% { left: 60%; bottom: -30%; opacity: 1; transform: scale(0.1) !important;  filter: brightness(40%);} /* Position 6: Smallest, almost a speck */
+            90% { left: 33%; bottom: -25%; opacity: 0.75; transform: scale(0.1) !important;  filter: brightness(30%);} /* Position 6: Smallest, almost a speck */
+            100% { left: 18%; bottom: -5%; opacity: 1; transform: scale(1); filter: brightness(90%);} /* Loops back to Position 1 */
+        }
+
+        /* Keyframes for the subtle back-and-forth swaying */
+        @keyframes sway {
+            /* Now, the sway animation only applies rotation, as scaling is handled by randomTeleport */
+            0% { transform: rotateZ(-2deg); }
+            50% { transform: rotateZ(2deg); }
+            100% { transform: rotateZ(-2deg); }
+        }
+
+        /* Common styles for character parts */
+        .char-part {
+            background-color: #7a5a4a; /* Medium brown for fur */
+            position: absolute;
+            border-radius: 50%; /* Default to rounded shapes */
+            /* Layered box-shadow for fuzzy effect */
+            box-shadow:
+                0 0 15px rgba(0,0,0,0.4), /* Main shadow for depth */
+                0 0 20px rgba(122, 90, 74, 0.3), /* Lighter, wider shadow for fuzziness */
+                0 0 25px rgba(106, 74, 58, 0.2), /* Even lighter, wider for more fuzz */
+                inset 0 0 15px rgba(0,0,0,0.3); /* Soft internal shadow for texture */
+        }
+
+        /* Body */
+        .char-body {
+            width: 100px;
+            height: 108px; /* Increased height by 20% (180 * 1.2 = 216) */
+            border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%; /* Round, stout body */
+            top: 80px; /* Adjusted to keep head connected */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #6a4a3a; /* Slightly darker body */
+            z-index: 2;
+        }
+
+        /* Head */
+        .char-head {
+            width: 90px;
+            height: 110px; /* Increased height by 20% (150 * 1.2 = 180) */
+            border-radius: 50% 50% 45% 45% / 60% 60% 45% 45%; /* Large, round head */
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #7a5a4a;
+            z-index: 3;
+            border: 2px solid #5a3a2a; /* Darker outline */
+        }
+
+        /* Face - lighter area for snout/muzzle */
+        .char-face {
+            width: 70px;
+            height: 80px; /* Increased height by 20% (60 * 1.2 = 72) */
+            background-color: #9a7a6a; /* Lighter brown for face */
+            border-radius: 50%;
+            position: absolute;
+            top: 20px; /* Adjusted to keep face centered on head (60 * 1.2 = 72) */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+        }
+
+        /* Eyes */
+        .char-eye-left, .char-eye-right {
+            width: 20px;
+            height: 20px;
+            background-color: #fff; /* White of the eye */
+            border-radius: 50%;
+            position: absolute;
+            top: 8px; /* Adjusted (15 * 1.2 = 18) */
+            z-index: 5;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .char-eye-left {
+            left: 10px; /* Relative to char-face */
+        }
+
+        .char-eye-right {
+            right: 10px; /* Relative to char-face */
+        }
+
+        /* Pupils */
+        .char-eye-left::before, .char-eye-right::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-color: #000; /* Black pupil */
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 6;
+        }
+
+        /* Eye highlights */
+        .char-eye-left::after, .char-eye-right::after {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background-color: #fff; /* White highlight */
+            border-radius: 50%;
+            position: absolute;
+            top: 12px; /* Adjusted (10 * 1.2 = 12) */
+            left: 10px;
+            z-index: 7;
+        }
+
+        /* Nose */
+        .char-nose {
+            width: 15px;
+            height: 9px; /* Adjusted (15 * 1.2 = 18) */
+            background-color: #3a2a2a; /* Dark brown for nose */
+            border-radius: 50% 50% 20% 20% / 100% 100% 0 0;
+            position: absolute;
+            top: 25px; /* Adjusted (45 * 1.2 = 54) */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* Mouth */
+        .char-mouth {
+            width: 15px;
+            height: 2px; /* Keep thickness same */
+            background-color: #3a2a2a;
+            border-radius: 2px;
+            position: absolute;
+            top: 45px; /* Adjusted (75 * 1.2 = 90) */
+            left: 40%;
+            transform: translateX(-30%);
+            transform: rotateZ(10deg);
+            z-index: 5;
+        }
+
+        /* Arms */
+        .char-arm-left, .char-arm-right {
+            width: 45px;
+            height: 60px; /* Increased height by 20% (100 * 1.2 = 120) */
+            border-radius: 35px;
+            top: 110px; /* Adjusted to match new body height */
+            background-color: #6a4a3a;
+            z-index: 1;
+            transform: rotateZ(80deg);
+            transform-origin: top center;
+            /* Arms still swing, but now in place */
+            animation: armSwing 1s infinite alternate ease-in-out;
+        }
+
+        .char-arm-left {
+            left: 75px;
+            animation-delay: 0s;
+        }
+
+        .char-arm-right {
+            right: 75px;
+            animation-delay: 0.5s;
+            z-index: 9;
+
+        }
+
+        /* Keyframes for arm swinging */
+        @keyframes armSwing {
+            0% { transform: rotateZ(-10deg); }
+            100% { transform: rotateZ(10deg); }
+        }
+        .backarm{
+            transform: rotate(30deg) !important;
+        }
+
+        /* Legs */
+        .char-leg-left, .char-leg-right {
+            width: 40px;
+            height: 60px; /* Increased height by 20% (100 * 1.2 = 120) */
+            border-radius: 40px;
+            top: 170px; /* Adjusted to match new body height */
+            background-color: #6a4a3a;
+            z-index: 1;
+            transform-origin: top center;
+            /* Legs still swing, but now in place */
+            animation: legSwing 1s infinite alternate ease-in-out;
+        }
+
+        .char-leg-left {
+            left: 90px;
+            animation-delay: 0.5s;
+        }
+
+        .char-leg-right {
+            right: 90px;
+            animation-delay: 0.5s; /* Changed to 0.5s for synchronized movement */
+            z-index: 9;
+        }
+        /* Keyframes for leg swinging */
+        @keyframes legSwing {
+            0% { transform: rotateZ(3deg); }
+            100% { transform: rotateZ(-3deg); }
+        }
+
+        /* Ground/Mist effect */
+        .ground-effect {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            z-index: 4;
+        }
+        /* Ground/Mist effect */
+
+ /* Base Tree Styles */
+        .tree-container {
+            position: absolute; /* Changed to absolute for random placement */
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+            /* Subtle sway animation */
+            animation: sway 5s ease-in-out infinite alternate;
+        }
+
+        .tree-trunk {
+            background-color: #5a3a2a; /* Brown for trunk */
+            position: absolute;
+            bottom: -80px;
+            border-radius: 5px 5px 0 0;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+        }
+
+        /* Evergreen Tree Specific Styles */
+        .evergreen-tree .tree-trunk {
+            width: 40px;
+            height: 280px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .evergreen-leaves {
+            background-color: #1e4a2a; /* Dark evergreen green */
+            position: absolute;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5), inset 0 0 8px rgba(0,0,0,0.3);
+            width: 180px; /* Base width of the conical shape */
+            height: 250px; /* Base height of the conical shape */
+            top: -320px; /* Adjusted position to sit even higher on the trunk */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Keyframe Animation for Sway */
+        @keyframes sway {
+            0% { transform: rotateZ(-1deg); }
+            100% { transform: rotateZ(1deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .evergreen-tree .tree-trunk { width: 30px; height: 150px; }
+            .evergreen-leaves { width: 150px; height: 200px; top: -250px; /* Adjusted for responsive */ }
+        }
+
+        @media (max-width: 480px) {
+            .evergreen-tree .tree-trunk { width: 25px; height: 120px; }
+            .evergreen-leaves { width: 120px; height: 160px; top: -210px; /* Adjusted for responsive */ }
+        }
+
+
+
+
+        /* Billboard Scene Container - holds everything and applies overall 3D transform */
+        .billboard-scene {
+            position: relative;
+            width: 800px; /* Base width for the entire billboard structure */
+            height: 600px; /* Base height */
+            transform-style: preserve-3d;
+            /* Apply a strong upward tilt and slight rotation to match the image perspective */
+            transform: rotateX(15deg) rotateY(5deg) scale(0.9); /* Tilting back (positive rotateX) */
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4)); /* Overall shadow */
+        }
+
+        /* Main Billboard Sign Board */
+        .sign-board {
+            position: absolute;
+            width: 700px;
+            height: 350px;
+            background-color: #fff; /* White display area */
+            border-radius: 5px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 0 15px rgba(0,0,0,0.1);
+            transform-style: preserve-3d;
+            top: 50px;
+            left: 50px;
+            z-index: 10;
+            /* Added for video player centering */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Added for positioning the button */
+            position: relative; /* Make it a positioning context for the button */
+        }
+
+        /* Sign Board Frame/Border */
+        .sign-frame {
+            position: absolute;
+            top: -15px; /* Adjust to create thicker border */
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            background-color: #252323; /* Black frame */
+            border-radius: 8px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            z-index: -1; /* Behind the white face */
+        }
+
+        /* Sign Board Depth/Sides - adjusted for upward perspective */
+        .sign-depth-top, .sign-depth-bottom, .sign-depth-left, .sign-depth-right {
+            position: absolute;
+            background-color: #333; /* Dark grey for depth */
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        .sign-depth-top {
+            width: 100%;
+            height: 20px; /* Depth of the sign */
+            top: -20px;
+            left: 0;
+            transform-origin: bottom center;
+            transform: rotateX(-90deg);
+        }
+        .sign-depth-bottom {
+            width: 100%;
+            height: 20px; /* Depth of the sign */
+            bottom: -20px;
+            left: 0;
+            transform-origin: top center;
+            transform: rotateX(90deg);
+        }
+        .sign-depth-left {
+            width: 20px; /* Depth of the sign */
+            height: 100%;
+            top: 0;
+            left: -20px;
+            transform-origin: top right;
+            transform: rotateY(90deg);
+        }
+        .sign-depth-right {
+            width: 20px; /* Depth of the sign */
+            height: 100%;
+            top: 0;
+            right: -20px;
+            transform-origin: top left;
+            transform: rotateY(-90deg);
+        }
+
+        /* Main Support Post (Cylindrical) */
+        .main-post {
+            position: absolute;
+            bottom: -100px; /* Extend further down to imply ground connection */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px; /* Wider pole */
+            height: 450px; /* Taller pole */
+            background: linear-gradient(to bottom, #444, #222); /* Darker grey for metal */
+            border-radius: 50px 50px 0 0; /* Full cylinder top */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            z-index: 5;
+        }
+
+
+        /* Light Fixtures - placed on top rail */
+        .light-rail {
+            position: absolute;
+            top: 40px; /* Position above the sign */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 650px; /* Slightly wider than sign to hold lights */
+            height: 10px;
+            background-color: #201f1f; /* Dark grey rail */
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 12;
+        }
+
+        .light-fixture {
+            position: absolute;
+            width: 25px; /* Smaller, sleeker fixture */
+            height: 40px; /* Arm length */
+            background-color: #747474; /* Grey for fixture body */
+            border-radius: 5px;
+            transform-origin: top center;
+            transform: rotateX(75deg); /* Sharper angle downwards for lights */
+            z-index: 15;
+        }
+
+        .light-fixture::before { /* The light head */
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background-color: #201e1e; /* Light grey for head */
+            border-radius: 5px;
+        }
+
+        .light-fixture::after { /* The light glow */
+            content: '';
+            position: absolute;
+            bottom: -320px; /* Slightly more below the head to ensure visibility */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px; /* Width of the light beam at its narrowest point */
+            height: 300px; /* Height of the light beam */
+            background: linear-gradient(to bottom, rgba(255,255,200,1), rgba(255,255,200,0)) !important;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 100%, -10% 100%) !important;
+            filter: blur(5px);
+            z-index: 999; /* Behind the fixture */
+        }
+
+        /* Positioning for individual lights */
+        .light-fixture-1 { left: 75px; top: 10px; }
+        .light-fixture-2 { left: 200px; top: 10px; }
+        .light-fixture-3 { left: 325px; top: 10px; }
+        .light-fixture-4 { left: 450px; top: 10px; }
+        .light-fixture-5 { left: 575px; top: 10px; }
+        .light-fixture-6 { left: 700px; top: 10px; }
+
+
+        /* Video Player within the billboard */
+        .video-container {
+            position: relative;
+            width: 95%; /* Occupy most of the sign-board width */
+            padding-bottom: 45%; /* Decreased padding-bottom for smaller height */
+            height: 0;
+            overflow: hidden;
+            background-color: #000; /* Black background for video area */
+            border-radius: 3px; /* Slightly rounded corners for the video */
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            z-index: 1; /* Ensure video is behind the button */
+        }
+
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ensures the entire video is visible within the player */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .billboard-scene {
+                transform: rotateX(10deg) rotateY(5deg) scale(0.7); /* Adjusted for responsiveness */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .billboard-scene {
+                transform: rotateX(7deg) rotateY(3deg) scale(0.5); /* Adjusted for responsiveness */
+            }
+            .main-post { width: 70px; height: 200px; bottom:120px; left: 35%;}
+            .sign-board { width: 500px; height: 250px; }
+            .light-fixture-container { width: 450px; }
+            .light-fixture { width: 20px; height: 30px; }
+            .light-fixture-1 { left: 70px; }
+            .light-fixture-2 { left: 160px; }
+            .light-fixture-3 { left: 250px; }
+            .light-fixture-4 { left: 320px; }
+            .light-fixture-5 { left: 400px; }
+            .light-fixture-6 { left: 500px; }
+        }
+
+        @media (max-width: 480px) {
+            .billboard-scene {
+                transform: rotateX(5deg) rotateY(0deg) scale(0.35); /* Adjusted for responsiveness */
+            }
+            .main-post { width: 50px; height: 150px; }
+            .sign-board { width: 350px; height: 175px; }
+            .light-fixture-container { width: 300px; }
+            .light-fixture { width: 15px; height: 25px; }
+            .light-fixture-1 { left: 50px; }
+            .light-fixture-2 { left: 120px; }
+            .light-fixture-3 { left: 170px; }
+            .light-fixture-4 { left: 220px; }
+            .light-fixture-5 { left: 270px; }
+            .light-fixture-6 { left: 300px; }
+        }
+
+
+        .play-button {
+
+            box-shadow: 12px 12px 2px 1px rgb(0 0 255 / 0.2);
+            background:linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
+            background-color:#ffec64;
+            border-radius:10px;
+            border:1px solid #ffaa22;
+            display:inline-block;
+            cursor:pointer;
+            color:#333333;
+            font-family:Arial;
+            font-size:14px;
+            height: 25px;
+            width: 500px;
+            text-decoration:none;
+            text-shadow:0px 1px 0px #ffee66;
+
+            position: absolute; /* Position relative to .sign-board */
+            top: -11px; /* Position at the top, overlapping */
+            left: 50%;
+            transform: translateX(-50%); /* Center horizontally */
+            z-index: 100; /* Ensure it's above the video */
+        }
+
+        .play-button:hover {
+            background-color: #bab76d;
+            transform: translateX(-50%) translateY(-2px);
+        }
+
+        .play-button:active {
+            background-color: #bab76d;
+            transform: translateX(-50%) translateY(0);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Responsive adjustments for button */
+        @media (max-width: 640px) {
+            .play-button {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .play-button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 10 Randomly Placed Evergreen Trees -->
+    <div class="tree-container evergreen-tree" style="left: 7%; bottom: 36%; z-index:1; transform: scale(0.6) !important; filter: brightness(50%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 12%; bottom: 6%; z-index:5; transform: scale(0.9) !important; filter: brightness(70%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 20%; bottom: -2%;  z-index:8; transform: scale(1.1) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 34%; bottom: 56%;  z-index:1; transform: scale(0.4) !important; filter: brightness(50%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 44%; bottom: 26%;  z-index:2; transform: scale(0.7) !important; filter: brightness(70%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 52%; bottom: 8%;  z-index:5; transform: scale(0.95) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 57%; bottom: 46%;  z-index:1; transform: scale(0.5) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 73%; bottom: 6%; z-index:8; transform: scale(1.0) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 80%; bottom: 16%;  z-index:4; transform: scale(0.8) !important; filter: brightness(70%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 88%; bottom: 36%; z-index:1; transform: scale(0.65) !important; filter: brightness(60%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+
+    <div class="character-container">
+        <div class="char-body char-part"></div>
+        <div class="char-head char-part">
+            <div class="char-face">
+                <div class="char-eye-left"></div>
+                <div class="char-eye-right"></div>
+                <div class="char-nose"></div>
+                <div class="char-mouth"></div>
+            </div>
+        </div>
+        <div class="char-arm-left char-part backarm"></div>
+        <div class="char-arm-right char-part"></div>
+        <div class="char-leg-left char-part"></div>
+        <div class="char-leg-right char-part"></div>
+        <div class="ground-effect"></div>
+    </div>
+
+
+
+     <!-- 10 Randomly Placed Evergreen Trees -->
+    <div class="tree-container evergreen-tree" style="left: 24%; bottom: 30%; z-index:1; transform: scale(0.6) !important; filter: brightness(50%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 29%; bottom: 12%; z-index:5; transform: scale(0.9) !important; filter: brightness(70%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 36%; bottom: -4%;  z-index:8; transform: scale(1.1) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 50%; bottom: 66%;  z-index:1; transform: scale(0.4) !important; filter: brightness(50%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 67%; bottom: 32%;  z-index:2; transform: scale(0.7) !important; filter: brightness(70%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 60%; bottom: 12%;  z-index:5; transform: scale(0.95) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 79%; bottom: 36%;  z-index:1; transform: scale(0.5) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 83%; bottom: 2%; z-index:8; transform: scale(1.0) !important;">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 89%; bottom: 22%;  z-index:4; transform: scale(0.8) !important; filter: brightness(70%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+    <div class="tree-container evergreen-tree" style="left: 98%; bottom: -3%; z-index:1; transform: scale(0.65) !important; filter: brightness(60%);">
+        <div class="tree-trunk"></div>
+        <div class="evergreen-leaves"></div>
+    </div>
+
+
+       <div class="billboard-scene" style="left: -15%; top: -5px; z-index: 4; ">
+        <!-- Main Support Post -->
+
+        <div class="main-post"></div>
+
+        <!-- Billboard Sign with 3D Depth -->
+        <div class="sign-board">
+            <div class="sign-frame"></div>
+            <div class="sign-depth-top"></div>
+            <div class="sign-depth-bottom"></div>
+            <div class="sign-depth-left"></div>
+            <div class="sign-depth-right"></div>
+            <!-- Video Player Embedded Here -->
+            <div class="video-container">
+                <video id="billboardVideoPlayer" controls>
+                    <source src="Bigfoot_s_Lonely_Park_Bench_Video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <!-- Next Video Button - now inside the sign-board and positioned on top -->
+            <button id="nextVideoButton" class="play-button">
+                Next Sighting!
+            </button>
+        </div>
+
+        <!-- Truss Structure -->
+        <div class="truss-structure">
+            <!-- Vertical beams -->
+            <div class="truss-beam-vertical truss-beam-vertical-1"></div>
+            <div class="truss-beam-vertical truss-beam-vertical-2"></div>
+            <div class="truss-beam-vertical truss-beam-vertical-3"></div>
+            <div class="truss-beam-vertical truss-beam-vertical-4"></div>
+            <div class="truss-beam-vertical truss-beam-vertical-5"></div>
+
+            <!-- Horizontal beams (top and bottom of truss) -->
+            <div class="truss-beam-horizontal truss-beam-horizontal-top"></div>
+            <div class="truss-beam-horizontal truss-beam-horizontal-bottom"></div>
+
+            <!-- Diagonal beams (creating X pattern) -->
+            <div class="truss-beam-diagonal truss-diag-1"></div>
+            <div class="truss-beam-diagonal truss-diag-2"></div>
+            <div class="truss-beam-diagonal truss-diag-3"></div>
+            <div class="truss-beam-diagonal truss-diag-4"></div>
+            <div class="truss-beam-diagonal truss-diag-5"></div>
+            <div class="truss-beam-diagonal truss-diag-6"></div>
+            <div class="truss-beam-diagonal truss-diag-7"></div>
+            <div class="truss-beam-diagonal truss-diag-8"></div>
+        </div>
+
+        <!-- Light Fixtures -->
+        <div class="light-fixture-container">
+            <div class="light-fixture light-fixture-1"></div>
+            <div class="light-fixture light-fixture-2"></div>
+            <div class="light-fixture light-fixture-3"></div>
+            <div class="light-fixture light-fixture-4"></div>
+            <div class="light-fixture light-fixture-5"></div>
+            <div class="light-fixture light-fixture-6"></div>
+        </div>
+    </div>
+
+
+
+    <script>
+        const videoPlayer = document.getElementById('billboardVideoPlayer');
+        const nextVideoButton = document.getElementById('nextVideoButton');
+
+        // List of Bigfoot video URLs
+        const videoList = [
+            "Bigfoot_s_Lonely_Park_Bench_Video.mp4",
+            "Bigfoot_s_Bar_Brawl_Video.mp4",
+            "Bigfoot_s_Bar_Dance_Request_Fulfilled.mp4",
+            "Bigfoot_s_Bartending_Prediction_Video.mp4",
+            "Bigfoot4Aiden.mp4",
+            "Bigfoot_s_Frustrating_Text_Message.mp4",
+            "Bigfoot_s_Park_Bench_Outing.mp4"
+        ];
+
+        let currentVideoIndex = 0; // Initialize index to the first video
+
+        /**
+         * Selects the next video in the list and loads it into the player.
+         * Cycles back to the beginning of the list when the end is reached.
+         */
+        function playNextVideo() {
+            // Get the video URL for the current index
+            const nextVideoUrl = videoList[currentVideoIndex];
+
+            // Set the video source
+            videoPlayer.src = nextVideoUrl;
+            videoPlayer.load(); // Load the new video
+
+            // Attempt to play the video.
+            videoPlayer.play().catch(error => {
+                console.error("Video playback failed:", error);
+                // Inform the user if autoplay is blocked (e.g., show a message)
+            });
+
+            // Increment the index for the next click, wrapping around if at the end
+            currentVideoIndex = (currentVideoIndex + 1) % videoList.length;
+        }
+        // Event listener for the button click
+        nextVideoButton.addEventListener('click', playNextVideo);
+
+    </script>
+</body>
+</html>
