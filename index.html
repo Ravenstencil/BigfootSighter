@@ -6,25 +6,6 @@
     <title>Bigfoot Sighter</title>
     <!-- Tailwind CSS CDN for basic utilities, though most styling is custom CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-
-   <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://bigfootsighter.netlify.app/">
-    <meta property="og:title" content="Various Bigfoot Sightings!">
-    <meta property="og:description" content="Check out some Bigfoot sightings.">
-    <meta property="og:image" content="https://bigfootsighter.netlify.app/preview-image.png"> <!-- Replace with your actual image URL -->
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://bigfootsighter.netlify.app/">
-    <meta property="twitter:title" content="Various Bigfoot Sightings!">
-    <meta property="twitter:description" content="Check out some Bigfoot sightings.">
-    <meta property="twitter:image" content="https://bigfootsighter.netlify.app/preview-image.png"> <!-- Replace with your actual image URL -->
-
-
-
     <style>
         /* Custom font for overall page */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
@@ -569,18 +550,25 @@
 
         @media (max-width: 480px) {
             .billboard-scene {
-                transform: rotateX(5deg) rotateY(0deg) scale(0.35); /* Adjusted for responsiveness */
+                transform: rotateX(5deg) rotateY(0deg) scale(1);
+                left: 45% !important;
+                top: 10px !important;
             }
-            .main-post { width: 50px; height: 150px; }
-            .sign-board { width: 350px; height: 175px; }
+            .main-post { width: 50px; height: 150px; top:200px; left: 25%;}
+            .sign-board { width: 400px; height: 175px; }
             .light-fixture-container { width: 300px; }
             .light-fixture { width: 15px; height: 25px; }
-            .light-fixture-1 { left: 50px; }
-            .light-fixture-2 { left: 120px; }
-            .light-fixture-3 { left: 170px; }
-            .light-fixture-4 { left: 220px; }
-            .light-fixture-5 { left: 270px; }
-            .light-fixture-6 { left: 300px; }
+            .light-fixture-1 { left: 90px; }
+            .light-fixture-2 { left: 150px; }
+            .light-fixture-3 { left: 200px; }
+            .light-fixture-4 { left: 250px; }
+            .light-fixture-5 { left: 310px; }
+            .light-fixture-6 { left: 370px; }
+            .play-button {height: 20px; width: 300px !important; border-radius:3px !important; }
+            .light-fixture::after { /* The light glow */
+            height: 200px; /* Height of the light beam */
+            bottom: -220px; /* Slightly more below the head to ensure visibility */
+            }
         }
 
 
@@ -629,7 +617,7 @@
 
         @media (max-width: 480px) {
             .play-button {
-                padding: 10px 20px;
+                padding: 5px 10px;
                 font-size: 0.9rem;
             }
         }
